@@ -43,16 +43,12 @@ pipeline {
                 milestone(1)
                 withCredentials([usernamePassword(credentialsId: 'webserver_login', usernameVariable: 'USERNAME', passwordVariable: 'USERPASS')]) {
                     script {
-                        // Remove the manual password input if using Jenkins credentials
-                        // Optionally, prompt for SSH password if you choose not to use credentials
-                        // USERPASS = input(message: 'Enter SSH Password:', parameters: [string(name: 'SSH Password', defaultValue: '', description: 'Password for SSH login')])
-                        
                         sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker pull newnexus/train-schedule:${env.BUILD_NUMBER}\""
                         try {
                             sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker stop train-schedule\""
                             sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker rm train-schedule\""
                         } catch (err) {
-                            echo "Caught error: ${err}"
+                            echo: 'caught error: $err'
                         }
                         sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker run --restart always --name train-schedule -p 8080:8080 -d newnexus/train-schedule:${env.BUILD_NUMBER}\""
                     }
